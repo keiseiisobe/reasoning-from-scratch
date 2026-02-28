@@ -34,5 +34,15 @@ GPUs are designed to perform massive amounts of math in parallel. To a GPU, calc
 ### B. KV Cache Requirement
 Even if we only care about the prediction for the 6th token, the model **must** calculate the internal Key and Value states for all 6 tokens across all 28 layers of the architecture to populate the **KV Cache**. Since 99% of the computational work is already being done to fill the cache, saving the tiny fraction of math in the final layer is not worthwhile.
 
+## 4. Inference vs. Training: Why KV Caching is Inference-Only
+It is important to note that **KV caches are one of the most critical techniques for efficient inference in LLMs in production**, but they are **not used for training**.
+
+- **In Training (Teacher Forcing):** We feed the entire sequence into the model at once. The GPU processes all tokens in parallel. Since the whole "history" is processed in a single mathematical operation, there is no need to store or retrieve intermediate states.
+- **In Inference (Autoregressive Generation):** We generate tokens one-by-one. Each new token depends on the tokens before it. The KV cache allows us to "remember" the previous tokens without re-calculating them, turning a slow $O(n^2)$ process into a fast $O(n)$ process.
+
+---
+## 🔗 References & Further Reading
+- **[Coding the KV Cache in LLMs](https://magazine.sebastianraschka.com/p/coding-the-kv-cache-in-llms):** A deep dive by Sebastian Raschka into the implementation and importance of KV Caching.
+
 ---
 *Summary of LLM optimization and GPU parallelism discussions.*
